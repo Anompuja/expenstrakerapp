@@ -3,6 +3,7 @@ package com.example.expensetracker.presentation.navigation
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.example.expensetracker.data.repository.impl.InMemoryTransactionRepositoryImpl
 import com.example.expensetracker.presentation.controller.AddEditTransactionController
 import com.example.expensetracker.presentation.controller.HistoryController
 import com.example.expensetracker.presentation.controller.HomeController
@@ -54,11 +55,23 @@ fun AppNavigator() {
             ) }
             HomeScreen(controller = homeController)
         }
+// Inside AppNavigation.kt, within the AppNavigator composable's when(currentScreen) block:
+
+// In AppNavigation.kt
+
         Screen.HISTORY -> {
-            val historyController = remember { HistoryController(
-                onNavigateBack = { navigateTo(Screen.HOME, null) }
-                // TODO: Pass transaction data source (Model access) to controller
-            ) }
+            // Correct way to get the singleton instance of your object
+            val transactionRepository = remember { InMemoryTransactionRepositoryImpl }
+
+            val historyController = remember {
+                HistoryController(
+                    transactionRepository = transactionRepository, // Pass the repository
+                    onNavigateBack = { navigateTo(Screen.HOME, null) },
+                    onNavigateToEditTransaction = { transactionId ->
+                        navigateTo(Screen.ADD_TRANSACTION, transactionId)
+                    }
+                )
+            }
             HistoryScreen(controller = historyController)
         }
         Screen.ADD_TRANSACTION -> {

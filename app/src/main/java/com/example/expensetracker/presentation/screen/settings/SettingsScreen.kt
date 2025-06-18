@@ -1,36 +1,49 @@
 package com.example.expensetracker.presentation.screen.settings
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.ColorLens
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.expensetracker.presentation.components.BackgroundWrapper
+import com.example.expensetracker.presentation.controller.SettingsController
 import com.example.expensetracker.presentation.theme.ExpenseTrackerTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit
-    // Add callbacks for specific setting actions, e.g.:
-    // onNavigateToProfile: () -> Unit,
-    // onToggleNotifications: (Boolean) -> Unit,
-    // onChangeTheme: () -> Unit
+    controller: SettingsController
 ) {
-    var notificationsEnabled by remember { mutableStateOf(true) } // Example state
+    val uiState = controller.uiState
 
     BackgroundWrapper {
         Scaffold(
@@ -39,14 +52,14 @@ fun SettingsScreen(
                 TopAppBar(
                     title = { Text("Settings") },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        IconButton(onClick = { controller.navigateBack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 )
             }
@@ -55,147 +68,121 @@ fun SettingsScreen(
                 modifier = Modifier
                     .padding(paddingValues)
                     .fillMaxSize()
-                // .verticalScroll(rememberScrollState()) // Add if content might overflow
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
-                // Profile Section (Example - can navigate to a dedicated profile screen)
-                SettingsItem(
-                    icon = Icons.Filled.Person,
-                    title = "Profile",
-                    subtitle = "Manage your account details",
-                    onClick = { /* TODO: onNavigateToProfile() */ }
+                Text(
+                    "Preferences",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
 
-                // Notifications Toggle
-                SettingsToggleItem(
+                SettingItemWithSwitch(
+                    icon = Icons.Filled.Palette,
+                    title = "Dark Theme",
+                    description = "Enable or disable dark mode (UI state only for now)",
+                    checked = uiState.isDarkThemeEnabled,
+                    onCheckedChange = { controller.onDarkThemeToggle(it) }
+                )
+                HorizontalDivider()
+                SettingItemWithSwitch(
                     icon = Icons.Filled.Notifications,
                     title = "Enable Notifications",
-                    checked = notificationsEnabled,
-                    onCheckedChange = {
-                        notificationsEnabled = it
-                        // TODO: onToggleNotifications(it) - Persist this setting
-                    }
+                    description = "Receive alerts and reminders",
+                    checked = uiState.areNotificationsEnabled,
+                    onCheckedChange = { controller.onNotificationsToggle(it) }
                 )
-                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
 
-                // Theme Setting (Example)
-                SettingsItem(
-                    icon = Icons.Filled.ColorLens,
-                    title = "Appearance",
-                    subtitle = "Change app theme (Light/Dark)",
-                    onClick = { /* TODO: onChangeTheme() - Implement theme switching logic */ }
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    "Account",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-                Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                SettingItem(
+                    icon = Icons.AutoMirrored.Filled.Logout,
+                    title = "Logout",
+                    description = "Sign out of your account",
+                    onClick = { controller.logoutUser() } // Add confirmation dialog in real app
+                )
 
-                // Add more settings items as needed:
-                // - Currency
-                // - Data Backup/Restore
-                // - About
-                // - Logout (if applicable)
+                Spacer(modifier = Modifier.height(24.dp))
 
-                Spacer(modifier = Modifier.weight(1f)) // Pushes logout to bottom if added
+                Text(
+                    "About",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                SettingItem(
+                    icon = Icons.Filled.Info,
+                    title = "App Version",
+                    description = uiState.appVersion,
+                    onClick = {} // No action for version display
+                )
 
-                // Example: Logout Button
-                // Button(
-                //     onClick = { /* TODO: Handle logout */ },
-                //     modifier = Modifier
-                //         .fillMaxWidth()
-                //         .padding(16.dp),
-                //     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                // ) {
-                //     Text("Logout")
-                // }
+                // Add more settings categories and items as needed
+                // e.g., Data Management (Export, Import, Clear Data)
+                // e.g., Support (Help, FAQ, Contact Us)
             }
         }
     }
 }
+// ... (previous code in SettingsScreen.kt)
 
 @Composable
-fun SettingsItem(
+fun SettingItem(
     icon: ImageVector,
     title: String,
-    subtitle: String? = null,
+    description: String,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            subtitle?.let {
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-        Icon(
-            imageVector = Icons.Filled.ChevronRight,
-            contentDescription = "Go to $title",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+    ListItem(
+        modifier = Modifier.clickable(onClick = onClick).fillMaxWidth(), // Ensure clickable area is full width
+        headlineContent = { Text(title, style = MaterialTheme.typography.bodyLarge) },
+        supportingContent = { Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        leadingContent = { Icon(icon, contentDescription = title, tint = MaterialTheme.colorScheme.secondary) },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
 }
 
 @Composable
-fun SettingsToggleItem(
+fun SettingItemWithSwitch(
     icon: ImageVector,
     title: String,
+    description: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) } // Click row to toggle
-            .padding(horizontal = 16.dp, vertical = 12.dp), // Slightly less vertical padding for toggles
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.primary,
-                checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+    ListItem(
+        modifier = Modifier.clickable { onCheckedChange(!checked) }.fillMaxWidth(), // Click row to toggle
+        headlineContent = { Text(title, style = MaterialTheme.typography.bodyLarge) },
+        supportingContent = { Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) },
+        leadingContent = { Icon(icon, contentDescription = title, tint = MaterialTheme.colorScheme.secondary) },
+        trailingContent = {
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                )
             )
-        )
-    }
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+    )
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 740)
+@Preview(showBackground = true, widthDp = 380, heightDp = 700)
 @Composable
 fun SettingsScreenPreview() {
     ExpenseTrackerTheme {
-        SettingsScreen(onNavigateBack = {})
+        val previewController = SettingsController(
+            onNavigateBack = {}
+        )
+        SettingsScreen(controller = previewController)
     }
 }

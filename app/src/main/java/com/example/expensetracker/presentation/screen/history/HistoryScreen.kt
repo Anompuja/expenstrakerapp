@@ -1,46 +1,81 @@
 package com.example.expensetracker.presentation.screen.history
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items // Make sure to import this
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Category // Example icon
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.expensetracker.data.model.Transaction
 import com.example.expensetracker.presentation.components.BackgroundWrapper
-import com.example.expensetracker.presentation.theme.ExpenseTrackerTheme
+import com.example.expensetracker.presentation.controller.HistoryController
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import java.util.UUID
-
-// Dummy data for now - replace with actual data from a ViewModel/Repository
-val sampleTransactions = listOf(
-    Transaction(UUID.randomUUID().toString(), "Lunch at Cafe", 15.75, ExpenseType.FOOD, Date(System.currentTimeMillis() - 80000000L), "With colleagues"),
-    Transaction(UUID.randomUUID().toString(), "Monthly Bus Pass", 60.00, ExpenseType.TRANSPORTATION, Date(System.currentTimeMillis() - 160000000L)),
-    Transaction(UUID.randomUUID().toString(), "Movie Tickets", 25.00, ExpenseType.ENTERTAINMENT, Date(System.currentTimeMillis() - 240000000L), "Weekend movie"),
-    Transaction(UUID.randomUUID().toString(), "Groceries", 75.20, ExpenseType.FOOD, Date(System.currentTimeMillis() - 320000000L)),
-    Transaction(UUID.randomUUID().toString(), "New T-shirt", 30.00, ExpenseType.APPAREL, Date(System.currentTimeMillis() - 400000000L))
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
-    onNavigateBack: () -> Unit
-    // In a real app, you'd pass a list of transactions, likely from a ViewModel
-    // transactions: List<Transaction> = emptyList()
+    controller: HistoryController
 ) {
-    // For now, using sampleTransactions. Replace with ViewModel state later.
-    val transactions by remember { mutableStateOf(sampleTransactions) }
+    val uiState = controller.uiState
+    var showDeleteDialog by remember { mutableStateOf<String?>(null) } // Holds ID of transaction to delete
+
+    LaunchedEffect(key1 = Unit) { // <--- REPLACEMENT BLOCK
+
+        if (!uiState.isLoading && uiState.transactions.isEmpty() && uiState.errorMessage == null) {
+            controller.loadTransactionHistory()
+        }
+    }
+
+
+    if (showDeleteDialog != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = null },
+            title = { Text("Confirm Deletion") },
+            text = { Text("Are you sure you want to delete this transaction?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog?.let { controller.deleteTransaction(it) }
+                    showDeleteDialog = null
+                }) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = null }) { Text("Cancel") }
+            }
+        )
+    }
 
     BackgroundWrapper {
         Scaffold(
@@ -49,134 +84,131 @@ fun HistoryScreen(
                 TopAppBar(
                     title = { Text("Transaction History") },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        IconButton(onClick = { controller.navigateBack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 )
             }
         ) { paddingValues ->
-            if (transactions.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "No transactions recorded yet.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(transactions, key = { it.id }) { transaction ->
-                        TransactionHistoryItem(transaction = transaction)
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            ) {
+                if (uiState.isLoading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TransactionHistoryItem(transaction: Transaction) {
-    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)) // Semi-transparent card
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Category, // Replace with type-specific icons later
-                contentDescription = transaction.type.name,
-                modifier = Modifier.size(40.dp).padding(end = 12.dp),
-                tint = MaterialTheme.colorScheme.secondary
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = transaction.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = transaction.type.name.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                transaction.description?.let {
-                    if (it.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(2.dp))
+                } else if (uiState.errorMessage != null) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            text = uiState.errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
+                } else if (uiState.transactions.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            "No transactions found.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        // Group by date in a real app for better UX
+                        items(uiState.transactions, key = { it.id }) { transaction ->
+                            TransactionHistoryItem(
+                                transaction = transaction,
+                                onEditClick = { controller.navigateToEditTransactionScreen(transaction.id) },
+                                onDeleteClick = { showDeleteDialog = transaction.id },
+                            )
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        }
+                    }
                 }
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "$%.2f".format(transaction.amount), // Basic currency formatting
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (transaction.amount >= 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error // Example for income vs expense
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = dateFormatter.format(transaction.date),
-                    style = MaterialTheme.typography.bodySmall,
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 740)
-@Composable
-fun HistoryScreenPreview() {
-    ExpenseTrackerTheme {
-        HistoryScreen(onNavigateBack = {})
-    }
-}
+// ... (previous code in HistoryScreen.kt)
 
-@Preview(showBackground = true, widthDp = 360)
 @Composable
-fun TransactionHistoryItemPreview() {
-    ExpenseTrackerTheme {
-        TransactionHistoryItem(
-            transaction = Transaction(
-                "1",
-                "Lunch Special",
-                12.99,
-                ExpenseType.FOOD,
-                Date(),
-                "Quick bite at the new cafe downtown with a friend."
-            )
+fun TransactionHistoryItem(
+    transaction: Transaction,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier // Added modifier parameter
+) {
+    val amountColor = if (transaction.isExpense) MaterialTheme.colorScheme.error else Color(0xFF2E7D32) // Dark Green for income
+    val sign = if (transaction.isExpense) "-" else "+"
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault()) } // Added time
+
+    ListItem( // Using Material 3 ListItem for better structure and accessibility
+        modifier = modifier.padding(vertical = 4.dp), // Add some vertical padding to each item
+        headlineContent = {
+            Text(transaction.title, fontWeight = FontWeight.SemiBold)
+        },
+        supportingContent = {
+            Column {
+                Text(
+                    transaction.type.name.lowercase().replaceFirstChar { it.titlecase(Locale.getDefault()) },
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    dateFormat.format(transaction.date),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (!transaction.description.isNullOrBlank()) {
+                    Text(
+                        transaction.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 2 // Show a snippet of description
+                    )
+                }
+            }
+        },
+        leadingContent = { // Optional: Icon for transaction type
+            // Icon(
+            //     imageVector = transaction.type.icon, // Assuming ExpenseType has an icon property
+            //     contentDescription = transaction.type.name,
+            //     tint = MaterialTheme.colorScheme.secondary
+            // )
+        },
+        trailingContent = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = String.format(Locale.getDefault(), "%s$%.2f", sign, transaction.amount),
+                    color = amountColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                IconButton(onClick = onEditClick) {
+                    Icon(Icons.Filled.Edit, contentDescription = "Edit Transaction", tint = MaterialTheme.colorScheme.secondary)
+                }
+                IconButton(onClick = onDeleteClick) {
+                    Icon(Icons.Filled.Delete, contentDescription = "Delete Transaction", tint = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent // Or MaterialTheme.colorScheme.surface.copy(alpha = 0.5f) for subtle cards
         )
-    }
+    )
 }
