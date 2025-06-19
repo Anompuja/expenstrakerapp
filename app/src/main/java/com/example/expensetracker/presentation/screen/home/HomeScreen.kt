@@ -88,8 +88,8 @@ fun HomeScreen(
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = { controller.navigateToAddTransactionScreen() },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
+                    containerColor = Color.White,
+                    contentColor = Color.Black
                 ) {
                     Icon(Icons.Filled.Add, contentDescription = "Add Transaction")
                 }
@@ -118,7 +118,7 @@ fun HomeScreen(
                     Text(
                         "Welcome, ${uiState.userName}!",
                         style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = Color.White,
                         modifier = Modifier.padding(bottom = 16.dp, top = 8.dp) // Added top padding
                     )
 
@@ -171,7 +171,7 @@ fun SummarySection(balance: Double, income: Double, expenses: Double) {
             // Balance card takes full width
             modifier = Modifier.fillMaxWidth(),
         ) {
-            SummaryCard("Balance", balance, MaterialTheme.colorScheme.primary, modifier = Modifier.fillMaxWidth())
+            SummaryCard("Balance", balance, Color.Black, modifier = Modifier.fillMaxWidth())
         }
         Spacer(modifier = Modifier.height(12.dp)) // Reduced spacer
         Row(
@@ -179,7 +179,7 @@ fun SummarySection(balance: Double, income: Double, expenses: Double) {
             horizontalArrangement = Arrangement.spacedBy(12.dp) // Spacing between cards
         ) {
             SummaryCard("Income", income, Color(0xFF2E7D32), modifier = Modifier.weight(1f)) // Dark Green
-            SummaryCard("Expenses", expenses, MaterialTheme.colorScheme.error, modifier = Modifier.weight(1f))
+            SummaryCard("Expenses", expenses, Color.Red, modifier = Modifier.weight(1f))
         }
     }
 }
@@ -189,13 +189,13 @@ fun SummaryCard(title: String, amount: Double, amountColor: Color, modifier: Mod
     Card(
         modifier = modifier, // Removed fillMaxWidth here, applied by caller if needed
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), // Reduced elevation
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)) // More subtle
+        colors = CardDefaults.cardColors(containerColor = Color.White) // More subtle
     ) {
         Column(
             modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp), // Adjusted padding
             horizontalAlignment = Alignment.Start, // Align text to start
         ) {
-            Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) // Smaller label
+            Text(title, style = MaterialTheme.typography.labelMedium, color = Color.Black) // Smaller label
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 String.format(Locale.getDefault(), "$%.2f", amount), // Added currency symbol
