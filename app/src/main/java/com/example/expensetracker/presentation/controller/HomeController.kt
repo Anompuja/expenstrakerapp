@@ -9,7 +9,7 @@ import com.example.expensetracker.data.repository.impl.InMemoryTransactionReposi
 
 // Data class for UI state of the Home Screen
 data class HomeUIState(
-    val userName: String = "User", // Placeholder
+    val userName: String = "Degas", // Placeholder
     val totalBalance: Double = 0.0,
     val totalIncome: Double = 0.0,
     val totalExpenses: Double = 0.0,
@@ -43,7 +43,7 @@ class HomeController(
             val recent = allTransactions.take(5) // Show latest 5 transactions
 
             uiState = uiState.copy(
-                userName = "User", // Replace with actual user data if available
+                userName = "Degas", // Replace with actual user data if available
                 totalBalance = balance,
                 totalIncome = income,
                 totalExpenses = expenses,

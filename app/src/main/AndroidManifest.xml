@@ -7,9 +7,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/app_logo_moneting"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/app_logo_moneting"
         android:supportsRtl="true"
         android:theme="@style/Theme.Expensetracker"
         tools:targetApi="31">
@@ -25,23 +25,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- HomeActivity Declaration -->
-        <activity
-            android:name=".view.HomeActivity"
-            android:label="Home"
-            android:theme="@style/Theme.Expensetracker"/>
-
-        <!-- HistoryActivity Declaration -->
-        <activity
-            android:name=".view.HistoryActivity"
-            android:label="History"
-            android:theme="@style/Theme.Expensetracker"/>
-
-        <!-- SettingsActivity Declaration -->
-        <activity
-            android:name=".view.SettingsActivity"
-            android:label="Settings"
-            android:theme="@style/Theme.Expensetracker"/>
     </application>
 </manifest>
