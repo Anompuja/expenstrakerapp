@@ -72,7 +72,7 @@ fun HomeScreen(
                 TopAppBar(
                     title = { Text("Dashboard") },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        containerColor =Color.Transparent,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     ),
                     actions = {

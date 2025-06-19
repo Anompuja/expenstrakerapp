@@ -89,7 +89,7 @@ fun HistoryScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                        containerColor = Color.Transparent,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                         navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
