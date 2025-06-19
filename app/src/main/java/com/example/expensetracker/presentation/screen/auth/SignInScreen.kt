@@ -34,8 +34,6 @@ import com.example.expensetracker.R
 fun SignInScreen(
     controller: SignInController
 ) {
-    // The BackgroundWrapper and Theme will be defined later.
-    // For now, you might see errors related to them if you try to build.
     BackgroundWrapper {
         Scaffold(
             containerColor = Color.Transparent, // To see background
@@ -73,7 +71,7 @@ fun SignInScreen(
                     label = { Text("Email Address") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    isError = controller.errorMessage != null // Show error state if message exists
+                    isError = controller.errorMessage != null
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -84,7 +82,7 @@ fun SignInScreen(
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
-                    isError = controller.errorMessage != null // Show error state if message exists
+                    isError = controller.errorMessage != null
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
