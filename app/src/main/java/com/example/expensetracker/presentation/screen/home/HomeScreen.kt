@@ -1,5 +1,6 @@
 package com.example.expensetracker.presentation.screen.home
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,13 +35,16 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.Image
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.expensetracker.R
 import com.example.expensetracker.data.model.Transaction
 import com.example.expensetracker.data.repository.impl.InMemoryTransactionRepositoryImpl
 import com.example.expensetracker.presentation.components.BackgroundWrapper
@@ -70,7 +74,11 @@ fun HomeScreen(
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Dashboard") },
+                    title = {Image(
+                        painter = painterResource(id = R.drawable.profile),
+                        contentDescription = "App Logo",
+                        modifier = Modifier.height(200.dp))
+                            },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor =Color.Transparent,
                         titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer

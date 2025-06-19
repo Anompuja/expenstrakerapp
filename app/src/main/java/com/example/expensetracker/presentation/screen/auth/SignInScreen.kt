@@ -41,10 +41,13 @@ fun SignInScreen(
             containerColor = Color.Transparent, // To see background
             topBar = {
                 TopAppBar(
-                    title = { Text("Sign In / Register") },
+                    title = { Text("Sign In | Register")},
+                    modifier = Modifier
+                        .padding(horizontal = 105.dp),
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+
                     )
                 )
             }
@@ -62,7 +65,7 @@ fun SignInScreen(
                     contentDescription = "App Logo",
                     modifier = Modifier.height(200.dp)
                 )
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(5.dp))
 
                 OutlinedTextField(
                     value = controller.email,
